@@ -116,3 +116,5 @@ exp/json
 tmp_*/
 example/res/
 data/
+vendor/
+vendor/

@@ -4,10 +4,59 @@
 # -----------------------------------------------------
 
 import torch.nn as nn
+import torch
 
 from .builder import SPPE
 from .layers.DUC import DUC
 from .layers.SE_Resnet import SEResnet
+
+
+def gather(input, dim, index):
+    import itertools
+    import operator
+
+    indices = [torch.arange(size, device=index.device) for size in index.shape]
+    indices = list(torch.meshgrid(*indices))
+    indices[dim] = index
+    sizes = list(
+        reversed(list(itertools.accumulate(reversed(input.shape), operator.mul))))
+    index = sum((index * size for index,
+                 size in zip(indices, sizes[1:] + [1])))
+    output = input.flatten()[index]
+    return output
+
+
+def get_max_pred_cuda(heatmaps):
+    # v, i = torch.max(heatmaps, dim=1)
+    # maxvals, ii = torch.max(v, dim=1)
+    # iia = ii.unsqueeze(-1)
+    # iw = gather(i, 1, iia)
+    # print('iia: ', iia.shape)
+    # print('iw: ', iw.shape)
+
+    # preds = torch.cat([iia, iw], dim=1)
+    # print('preds: ', preds.shape)
+    # maxvals = maxvals.unsqueeze(-1)
+    # print('maxvals: ', maxvals.shape)
+
+    # mask = maxvals > 0
+    # pred_mask = torch.cat([mask, mask], dim=1)
+    # preds *= pred_mask
+    # print(preds.shape)
+    # print(maxvals.shape)
+
+    v, i = torch.max(heatmaps, dim=2)
+    maxvals, ii = torch.max(v, dim=2)
+    iia = ii.unsqueeze(-1)
+    iw = gather(i, 2, iia)
+    
+    preds = torch.cat([iia, iw], dim=2)
+    # maxvals = maxvals.unsqueeze(-1)
+    mask = maxvals > 0
+    mask = mask.unsqueeze(-1)
+    pred_mask = torch.cat([mask, mask], dim=2)
+    preds *= pred_mask
+    return preds, maxvals
 
 
 @SPPE.register_module
@@ -16,6 +65,8 @@ class FastPose(nn.Module):
     def __init__(self, norm_layer=nn.BatchNorm2d, **cfg):
         super(FastPose, self).__init__()
         self._preset_cfg = cfg['PRESET']
+        if 'ONNX_EXPORT' in cfg.keys():
+            self.onnx_export = cfg['ONNX_EXPORT']
         if 'CONV_DIM' in cfg.keys():
             self.conv_dim = cfg['CONV_DIM']
         else:
@@ -41,6 +92,10 @@ class FastPose(nn.Module):
 
         self.suffle1 = nn.PixelShuffle(2)
         self.duc1 = DUC(512, 1024, upscale_factor=2, norm_layer=norm_layer)
+        if cfg['NUM_LAYERS'] == 18:
+            self.duc1 = DUC(128, 1024, upscale_factor=2, norm_layer=norm_layer)
+        else:
+            self.duc1 = DUC(512, 1024, upscale_factor=2, norm_layer=norm_layer)
         if self.conv_dim == 256:
             self.duc2 = DUC(256, 1024, upscale_factor=2, norm_layer=norm_layer)
         else:
@@ -49,13 +104,23 @@ class FastPose(nn.Module):
             self.conv_dim, self._preset_cfg['NUM_JOINTS'], kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
+        if self.onnx_export:
+            # do normalize and transpose here
+            # wrap them into model, then inference only need **resize**
+            print('normalize and transpose wrapped into onnx.')
         out = self.preact(x)
         out = self.suffle1(out)
         out = self.duc1(out)
         out = self.duc2(out)
 
         out = self.conv_out(out)
-        return out
+        if torch.onnx.is_in_onnx_export():
+            print('out shap: ', out.shape)
+            print('[WARN] you are in onnx export.')
+            coords, maxvals = get_max_pred_cuda(out)
+            return coords, maxvals
+        else:
+            return out
 
     def _initialize(self):
         for m in self.conv_out.modules():
