@@ -4,7 +4,9 @@ this is a fork version of alphapose. we made some modifications compare with ori
 
 - torch1.10+ supported;
 - onnx export and postprocessing optimization;
-
+- CPU can be build and run;
+- Add some lightweighted models trained with AlphaPose;
+- `wanwu` inference support on purely TensorRT;
 
 
 
