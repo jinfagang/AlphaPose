@@ -104,7 +104,7 @@ class FastPose(nn.Module):
             self.conv_dim, self._preset_cfg['NUM_JOINTS'], kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
-        if self.onnx_export:
+        if torch.onnx.is_in_onnx_export():
             # do normalize and transpose here
             # wrap them into model, then inference only need **resize**
             print('normalize and transpose wrapped into onnx.')

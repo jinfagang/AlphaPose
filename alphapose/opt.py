@@ -22,10 +22,11 @@ parser.add_argument('--exp-id', default='default', type=str,
                     help='Experiment ID')
 
 "----------------------------- General options -----------------------------"
-parser.add_argument('--nThreads', default=60, type=int,
+parser.add_argument('--nThreads', default=2, type=int,
                     help='Number of data loading threads')
 parser.add_argument('--snapshot', default=2, type=int,
                     help='How often to take a snapshot of the model (0 = never)')
+
 
 parser.add_argument('--rank', default=-1, type=int,
                     help='node rank for distributed training')
