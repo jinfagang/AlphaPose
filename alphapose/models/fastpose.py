@@ -108,6 +108,10 @@ class FastPose(nn.Module):
             # do normalize and transpose here
             # wrap them into model, then inference only need **resize**
             print('normalize and transpose wrapped into onnx.')
+            x = x.permute(0, 3, 1, 2)
+            print(x.shape)
+            x /= 255.
+
         out = self.preact(x)
         out = self.suffle1(out)
         out = self.duc1(out)

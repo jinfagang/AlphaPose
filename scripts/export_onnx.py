@@ -17,7 +17,7 @@ onnx_model_name = 'alp_halpe26_res50.onnx'
 
 if __name__ == "__main__":
     cfg = update_config(cfg_path)
-    input = torch.rand(1, 3, 256, 192).to(device)
+    input = torch.rand(1, 256, 192, 3).to(device)
 
     pose_model = builder.build_sppe(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
     pose_model.load_state_dict(torch.load(weight, map_location=device))
@@ -43,5 +43,5 @@ if __name__ == "__main__":
     print('Simplifying model...')
     model = onnx.load(onnx_model_name)
     model_simp, check = simplify(
-        model, input_shapes={'input': [2, 3, 256, 192]}, dynamic_input_shape=True)
+        model, input_shapes={'input': [2, 256, 192, 3]}, dynamic_input_shape=True)
     onnx.save(model_simp, onnx_model_name)
