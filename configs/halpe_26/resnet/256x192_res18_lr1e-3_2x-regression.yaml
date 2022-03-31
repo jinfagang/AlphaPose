@@ -40,7 +40,8 @@ MODEL:
   - 256
   - 256
   - 256
-  NUM_LAYERS: 50
+  # NUM_LAYERS: 50
+  NUM_LAYERS: 18
   CONV_DIM: 256
 LOSS:
   TYPE: 'L1JointRegression'
