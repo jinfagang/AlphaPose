@@ -6,20 +6,22 @@ from alphapose.utils.config import update_config
 from onnxsim import simplify
 import os
 import onnx
+from alfred.dl.torch.common import device
 
 
-cfg_path = 'configs/coco/resnet/256x192_res18_lr1e-3_2x_onnx.yaml'
-weight = 'weights/final_DPG.pth'
-onnx_model_name = 'alphapose.onnx'
+# cfg_path = 'configs/coco/resnet/256x192_res18_lr1e-3_2x_onnx.yaml'
+# weight = 'weights/final_DPG.pth'
+cfg_path = 'configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml'
+weight = 'weights/halpe26_fast_res50_256x192.pth'
+onnx_model_name = 'alp_halpe26_res50.onnx'
 
 if __name__ == "__main__":
     cfg = update_config(cfg_path)
-    device = torch.device('cuda')
-    input = torch.rand(1, 3, 256, 192).cuda()
+    input = torch.rand(1, 3, 256, 192).to(device)
 
     pose_model = builder.build_sppe(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
     pose_model.load_state_dict(torch.load(weight, map_location=device))
-    pose_model.cuda()
+    pose_model.to(device)
     pose_model.eval()
 
     torch.onnx.export(pose_model,               # model being run
@@ -38,9 +40,8 @@ if __name__ == "__main__":
                           0: 'batch_size'}, 'maxvals': {0: 'batch_size'}}
                       )
     print("Finish!")
-
     print('Simplifying model...')
     model = onnx.load(onnx_model_name)
     model_simp, check = simplify(
-        model, input_shapes={'input': [12, 3, 256, 192]})
-    onnx.save(model_simp, 'pose_sim.onnx')
+        model, input_shapes={'input': [2, 3, 256, 192]}, dynamic_input_shape=True)
+    onnx.save(model_simp, onnx_model_name)
