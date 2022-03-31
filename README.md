@@ -1,4 +1,36 @@
+# AlphaPose
 
+this is a fork version of alphapose. we made some modifications compare with original:
+
+- torch1.10+ supported;
+- onnx export and postprocessing optimization;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------
 <div align="center">
     <img src="docs/logo.jpg", width="400">
 </div>
