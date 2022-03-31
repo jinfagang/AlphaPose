@@ -121,7 +121,8 @@ def get_ext_modules():
     # only windows visual studio 2013+ support compile c/cuda extensions
     # If you force to compile extension on Windows and ensure appropriate visual studio
     # is intalled, you can try to use these ext_modules.
-    force_compile = False
+    # force_compile = False
+    force_compile = True
     if platform.system() != 'Windows' or force_compile:
         ext_modules = [
             make_cython_ext(
@@ -163,7 +164,7 @@ def get_install_requires():
         'six', 'terminaltables',
         'opencv-python', 'matplotlib', 'visdom',
         'tqdm', 'tensorboardx', 'easydict',
-        'pyyaml', 'halpecocotools', 'munkres', 'natsort'
+        'pyyaml', 'halpecocotools', 
     ]
     # official pycocotools doesn't support Windows, we will install it by third-party git repository later
     if platform.system() != 'Windows':
