@@ -11,11 +11,11 @@ from alfred.dl.torch.common import device
 
 # cfg_path = 'configs/coco/resnet/256x192_res18_lr1e-3_2x_onnx.yaml'
 # weight = 'weights/final_DPG.pth'
-# cfg_path = 'configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml'
-# weight = 'weights/halpe26_fast_res50_256x192.pth'
-cfg_path = 'configs/halpe_26/resnet/256x192_res18_lr1e-3_2x-regression.yaml'
-weight = 'exp/alphapose-256x192_res18_lr1e-3_2x-regression.yaml/final_DPG.pth'
-onnx_model_name = 'alp_halpe26_res18.onnx'
+cfg_path = 'configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml'
+weight = 'weights/halpe26_fast_res50_256x192.pth'
+# cfg_path = 'configs/halpe_26/resnet/256x192_res18_lr1e-3_2x-regression.yaml'
+# weight = 'exp/alphapose-256x192_res18_lr1e-3_2x-regression.yaml/final_DPG.pth'
+onnx_model_name = weight.replace('.pth', '.onnx')
 
 if __name__ == "__main__":
     cfg = update_config(cfg_path)
@@ -47,3 +47,4 @@ if __name__ == "__main__":
     model_simp, check = simplify(
         model, input_shapes={'input': [2, 256, 192, 3]}, dynamic_input_shape=True)
     onnx.save(model_simp, onnx_model_name)
+    print('model saved into: ', onnx_model_name)
