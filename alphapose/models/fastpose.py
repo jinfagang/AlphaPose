@@ -9,6 +9,7 @@ import torch
 from .builder import SPPE
 from .layers.DUC import DUC
 from .layers.SE_Resnet import SEResnet
+from alfred.dl.torch.common import device
 
 
 def gather(input, dim, index):
@@ -114,8 +115,8 @@ class FastPose(nn.Module):
         )
 
         # add normalizer
-        pixel_mean = torch.as_tensor([0.406, 0.457, 0.480]).view(3, 1, 1)
-        pixel_std = torch.as_tensor([1, 1, 1]).view(3, 1, 1)
+        pixel_mean = torch.as_tensor([0.406, 0.457, 0.480]).view(3, 1, 1).to(device)
+        pixel_std = torch.as_tensor([1, 1, 1]).view(3, 1, 1).to(device)
         self.normalizer = lambda x: (x / 255.0 - pixel_mean) / pixel_std
 
     def forward(self, x):
